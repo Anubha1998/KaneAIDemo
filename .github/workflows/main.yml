@@ -39,7 +39,7 @@ jobs:
           app_job_id=${{ steps.trigger-test.outputs.app_job_id }}
           echo "Checking status of job: $app_job_id"
 
-          response=$(curl --location "https://api.hyperexecute.cloud/v2.0/job/$app_job_id" \
+          response=$(curl --location "https://api.hyperexecute.cloud/v2.0/job/$9d1de6da-af44-4a96-bcb3-cd160ffa0a6c" \
             --header "accept: application/json" \
             --header "Authorization: Basic ${{ secrets.LT_BASIC_AUTH }}" )
 
