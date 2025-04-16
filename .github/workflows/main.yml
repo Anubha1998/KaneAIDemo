@@ -1,52 +1,51 @@
-name: Run KaneAI Tests on LambdaTest
+name: Trigger and Monitor KaneAI Tests
 
 on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
 
 jobs:
-  kaneai-test:
+  trigger_and_check_tests:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Trigger KaneAI Test on LambdaTest
-        run: |
-          echo "Triggering KaneAI tests on LambdaTest"
-          
-          # Triggering the test without extracting job ID
-          response=$(curl --location 'https://test-manager-api.lambdatest.com/api/atm/v1/hyperexecute' \
-            --header 'accept: application/json' \
-            --header 'Content-Type: application/json' \
-            --header 'Authorization: Basic YW51YmhhczptM0xRYlRXSVI2cXpOQXVCQlVObG5XVzRXbDJwZHE3aWlXaHJpbkZJdTdzUERMM0FObQ==' \
-            --data '{
-                "test_run_id": "01JRZ364TD2AHEMKR6NK3QZKNZ",
-                "concurrency": 1
-            }')
-          
-          echo "Test triggered successfully!"
-          echo "Response: $response"
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      - name: Wait and Check Test Status
-        run: |
-          echo "Waiting for test completion..."
-          sleep 240  # Wait for test to run before checking status
+    - name: Trigger KaneAI tests on LambdaTest
+      run: |
+        echo "Triggering KaneAI tests on LambdaTest"
+        response=$(curl --location 'https://test-manager-api.lambdatest.com/api/atm/v1/hyperexecute' \
+          --header 'accept: application/json' \
+          --header 'Content-Type: application/json' \
+          --header 'Authorization: Basic YW51YmhhczptM0xRYlRXSVI2cXpOQXVCQlVObG5XVzRXbDJwZHE3aWlXaHJpbkZJdTdzUERMM0FObQ==' \
+          --data '{
+                    "test_run_id": "01JRZ364TD2AHEMKR6NK3QZKNZ",
+                    "concurrency": 1
+                }')
+        
+        echo "Response: $response"
+        # You may want to capture the response and store the job ID if needed
+        app_job_id=$(echo $response | jq -r '.data.job_id')
+        echo "App Job ID: $app_job_id"
 
-          # Check the test status
-          response=$(curl --location "https://api.hyperexecute.cloud/v2.0/job/status" \
-            --header "accept: application/json" \
-            --header "Authorization: Basic YW51YmhhczptM0xRYlRXSVI2cXpOQXVCQlVObG5XVzRXbDJwZHE3aWlXaHJpbkZJdTdzUERMM0FObQ==" )
+    - name: Wait and Check Test Status
+      run: |
+        echo "Waiting for test completion..."
+        sleep 240  # Wait for test to run before checking status
+        
+        # Check the test status (with the test_run_id included)
+        response=$(curl --location "https://api.hyperexecute.cloud/v2.0/job/status?test_run_id=01JRZ364TD2AHEMKR6NK3QZKNZ" \
+          --header "accept: application/json" \
+          --header "Authorization: Basic YW51YmhhczptM0xRYlRXSVI2cXpOQXVCQlVObG5XVzRXbDJwZHE3aWlXaHJpbkZJdTdzUERMM0FObQ==" )
 
-          echo "Response: $response"
-          status=$(echo $response | jq -r '.data.status')
-          echo "Test status: $status"
+        echo "Response: $response"
+        status=$(echo $response | jq -r '.data.status')
+        echo "Test status: $status"
+        
+        if [[ "$status" != "completed" ]]; then
+          echo "Tests failed or not completed yet."
+          exit 1
+        fi
 
-          if [[ "$status" != "completed" ]]; then
-            echo "Tests failed or not completed yet."
-            exit 1
-          fi
-
-          echo "✅ KaneAI tests passed successfully!"
+        echo "✅ KaneAI tests passed successfully!"
