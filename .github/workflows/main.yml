@@ -1,0 +1,29 @@
+name: Run KaneAI Tests on LambdaTest
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  kaneai-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run Tests on LambdaTest
+        env:
+          LT_USERNAME: ${{ secrets.LT_USERNAME }}
+          LT_ACCESS_KEY: ${{ secrets.LT_ACCESS_KEY }}
+        run: |
+          npx playwright test
