@@ -26,18 +26,18 @@ jobs:
                 "concurrency": 1
             }')
           echo "Response: $response"
-          
-          app_job_id=$(echo $response | jq -r '.9d1de6da-af44-4a96-bcb3-cd160ffa0a6c')
-          echo "9d1de6da-af44-4a96-bcb3-cd160ffa0a6c: $9d1de6da-af44-4a96-bcb3-cd160ffa0a6c"
-          echo "::set-output name=app_job_id::$9d1de6da-af44-4a96-bcb3-cd160ffa0a6c"
+
+          app_job_id=$(echo $response | jq -r '.app_job_id')
+          echo "App Job ID: $app_job_id"
+          echo "::set-output name=app_job_id::$app_job_id"
 
       - name: Wait and Check Test Status
         run: |
           echo "Waiting for test completion..."
-          sleep 240  # Wait before checking the status
+          sleep 240  # Wait for test to run before checking status
 
-          app_job_id=${{ steps.trigger-test.outputs.9d1de6da-af44-4a96-bcb3-cd160ffa0a6c }}
-          echo "Checking status of job: $9d1de6da-af44-4a96-bcb3-cd160ffa0a6c"
+          app_job_id=${{ steps.trigger-test.outputs.app_job_id }}
+          echo "Checking status of job: $app_job_id"
 
           response=$(curl --location "https://api.hyperexecute.cloud/v2.0/job/$app_job_id" \
             --header "accept: application/json" \
@@ -52,4 +52,4 @@ jobs:
             exit 1
           fi
 
-          echo "KaneAI tests passed successfully ✅"
+          echo "✅ KaneAI tests passed successfully!"
