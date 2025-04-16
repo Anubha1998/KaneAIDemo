@@ -18,17 +18,14 @@ jobs:
         run: |
           echo "Triggering KaneAI tests on LambdaTest"
 
-          # Encode auth manually
-          LT_BASIC_AUTH=$(echo -n "anubhas:m3LQbTWIR6qzNAuBBUNlnWW4Wl2pdq7iiWhrinFIu7sPDL3ANm" | base64)
+          # Base64 for: anubhas:m3LQbTWIR6qzNAuBBUNlnWW4Wl2pdq7iiWhrinFIu7sPDL3ANm
+          LT_BASIC_AUTH="YW51YmhhczptM0xRYlRXSVI2cXpOQXVCQlVObG5XVzR3bDJwZHE3aWlXaHJpbkZJdTdzUERMM0FObQ=="
 
-          response=$(curl --location 'https://test-manager-api.lambdatest.com/api/atm/v1/hyperexecute' \
+          response=$(curl --fail --location 'https://test-manager-api.lambdatest.com/api/atm/v1/hyperexecute' \
             --header 'accept: application/json' \
             --header 'Content-Type: application/json' \
             --header "Authorization: Basic $LT_BASIC_AUTH" \
-            --data '{
-                "test_run_id": "01JRZ364TD2AHEMKR6NK3QZKNZ",
-                "concurrency": 1
-            }')
+            --data '{"test_run_id": "01JRZ364TD2AHEMKR6NK3QZKNZ", "concurrency": 1}' )
 
           echo "Raw response: $response"
 
@@ -36,7 +33,7 @@ jobs:
           echo "Extracted app_job_id: $app_job_id"
 
           if [[ "$app_job_id" == "null" || -z "$app_job_id" ]]; then
-            echo "❌ Failed to extract app_job_id. Response was: $response"
+            echo "❌ Failed to extract app_job_id."
             exit 1
           fi
 
@@ -49,7 +46,7 @@ jobs:
 
           echo "Checking status of job: $app_job_id"
 
-          LT_BASIC_AUTH=$(echo -n "anubhas:m3LQbTWIR6qzNAuBBUNlnWW4Wl2pdq7iiWhrinFIu7sPDL3ANm" | base64)
+          LT_BASIC_AUTH="YW51YmhhczptM0xRYlRXSVI2cXpOQXVCQlVObG5XVzR3bDJwZHE3aWlXaHJpbkZJdTdzUERMM0FObQ=="
 
           response=$(curl --location "https://api.hyperexecute.cloud/v2.0/job/$app_job_id" \
             --header "accept: application/json" \
