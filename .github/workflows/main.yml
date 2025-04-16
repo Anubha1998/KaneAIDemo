@@ -17,6 +17,7 @@ jobs:
         id: trigger-test
         run: |
           echo "Triggering KaneAI tests on LambdaTest"
+
           response=$(curl --location 'https://test-manager-api.lambdatest.com/api/atm/v1/hyperexecute' \
             --header 'accept: application/json' \
             --header 'Content-Type: application/json' \
@@ -25,26 +26,29 @@ jobs:
                 "test_run_id": "01JRZ364TD2AHEMKR6NK3QZKNZ",
                 "concurrency": 1
             }')
+
           echo "Response: $response"
 
-          app_job_id=$(echo $response | jq -r '.app_job_id')
+          app_job_id=$(echo "$response" | jq -r '.app_job_id')
           echo "App Job ID: $app_job_id"
-          echo "::set-output name=app_job_id::$app_job_id"
+
+          # ✅ Save the output using environment file
+          echo "app_job_id=$app_job_id" >> "$GITHUB_OUTPUT"
 
       - name: Wait and Check Test Status
         run: |
           echo "Waiting for test completion..."
-          sleep 240  # Wait for test to run before checking status
+          sleep 240
 
-          app_job_id=${{ steps.trigger-test.outputs.app_job_id }}
+          app_job_id="${{ steps.trigger-test.outputs.app_job_id }}"
           echo "Checking status of job: $app_job_id"
 
-          response=$(curl --location "https://api.hyperexecute.cloud/v2.0/job/$9d1de6da-af44-4a96-bcb3-cd160ffa0a6c" \
+          response=$(curl --location "https://api.hyperexecute.cloud/v2.0/job/$app_job_id" \
             --header "accept: application/json" \
             --header "Authorization: Basic ${{ secrets.LT_BASIC_AUTH }}" )
 
           echo "Response: $response"
-          status=$(echo $response | jq -r '.data.status')
+          status=$(echo "$response" | jq -r '.data.status')
           echo "Test status: $status"
 
           if [[ "$status" != "completed" ]]; then
