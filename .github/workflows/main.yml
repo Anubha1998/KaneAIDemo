@@ -17,18 +17,17 @@ jobs:
         run: |
           echo "Triggering KaneAI tests on LambdaTest"
           
-          # Encode the username:access_key in Base64
-          auth=$(echo -n "anubhas:m3LQbTWIR6qzNAuBBUNlnWW4Wl2pdq7iiWhrinFIu7sPDL3ANm" | base64)
-
+          # Triggering the test without extracting job ID
           response=$(curl --location 'https://test-manager-api.lambdatest.com/api/atm/v1/hyperexecute' \
-            --header "accept: application/json" \
-            --header "Content-Type: application/json" \
-            --header "Authorization: Basic $auth" \
+            --header 'accept: application/json' \
+            --header 'Content-Type: application/json' \
+            --header 'Authorization: Basic YW51YmhhczptM0xRYlRXSVI2cXpOQXVCQlVObG5XVzRXbDJwZHE3aWlXaHJpbkZJdTdzUERMM0FObQ==' \
             --data '{
                 "test_run_id": "01JRZ364TD2AHEMKR6NK3QZKNZ",
                 "concurrency": 1
             }')
           
+          echo "Test triggered successfully!"
           echo "Response: $response"
 
       - name: Wait and Check Test Status
@@ -36,10 +35,10 @@ jobs:
           echo "Waiting for test completion..."
           sleep 240  # Wait for test to run before checking status
 
-          # No job ID is being fetched here, just checking the test completion status directly
+          # Check the test status
           response=$(curl --location "https://api.hyperexecute.cloud/v2.0/job/status" \
             --header "accept: application/json" \
-            --header "Authorization: Basic $auth" )
+            --header "Authorization: Basic YW51YmhhczptM0xRYlRXSVI2cXpOQXVCQlVObG5XVzRXbDJwZHE3aWlXaHJpbkZJdTdzUERMM0FObQ==" )
 
           echo "Response: $response"
           status=$(echo $response | jq -r '.data.status')
